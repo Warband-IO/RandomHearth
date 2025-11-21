@@ -52,7 +52,7 @@ local rhToys = {
 -- DO NOT EDIT BELOW HERE
 -- Unless you want to, I'm not your supervisor.
 
-local rhList, macroIcon, macroToyName, macroTimer, waitTimer
+local rhList, macroIcon, macroToyName, macroTimer, waitTimer, pendingMacroUpdate
 local rhCheckButtons, wait, lastRnd, loginMsg = {}, false, 0, "r21"
 local playerClass = select(3,UnitClass("player"))
 local addon, RH = ...
@@ -88,6 +88,14 @@ local function combatCheck()
 	end
 end
 
+-- Defer macro update until out of combat
+local function deferMacroUpdate()
+	if not pendingMacroUpdate then
+		pendingMacroUpdate = true
+		rhListener:RegisterEvent("PLAYER_REGEN_ENABLED")
+	end
+end
+
 -- Create or update global macro
 local function updateMacro()
 	if not combatCheck() then
@@ -109,6 +117,11 @@ local function updateMacro()
 		if macroTimer ~= true then
 			macroTimer = true
 			C_Timer.After(0.1, function()
+				if combatCheck() then
+					macroTimer = false
+					deferMacroUpdate()
+					return
+				end
 				local macroIndex = GetMacroIndexByName(rhDB.settings.macroName)
 				if macroIndex == 0 then
 					print(L["MACRO_NOT_FOUND"], rhDB.settings.macroName, "'")
@@ -489,6 +502,12 @@ rhMacroName:SetScript("OnEnterPressed", function() checkMacroName() end)
 rhListener:RegisterEvent("ADDON_LOADED")
 rhListener:RegisterEvent("PLAYER_ENTERING_WORLD")
 rhListener:SetScript("OnEvent", function(self, event, arg1)
+	if event == "PLAYER_REGEN_ENABLED" and pendingMacroUpdate then
+		pendingMacroUpdate = false
+		self:UnregisterEvent("PLAYER_REGEN_ENABLED")
+		updateMacro()
+		return
+	end
 	if event == "ADDON_LOADED" and arg1 == addon then
 		-- Set savedvariable defaults if first load or compare and update savedvariables with toy list
 		if rhDB == nil then
