@@ -46,6 +46,10 @@ local rhToys = {
 	236687, -- Explosive Hearthstone
 	245970, -- P.O.S.T Master's Express Hearthstone
 	246565, -- Cosmic Hearthstone
+	263489, -- Naaru's Enfold
+	-- Pending 12.0.0 Midnight release
+	-- 257736, -- Lightcalled Hearthstone
+	-- 265100, -- Corewarden's Hearthstone
 }
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
